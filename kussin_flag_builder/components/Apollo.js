@@ -1,7 +1,7 @@
-import React from 'react'
+import React, {useCallback, useState} from 'react';
 import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
-import { Card, DataTable, Layout, Button } from '@shopify/polaris'
+import { Card, DataTable, Layout, Button, Checkbox } from '@shopify/polaris'
 
 const hasCollection = (data) => 
     data.collectionByHandle != null 
@@ -23,6 +23,7 @@ const GET_FLAGS = gql`
         metafields(first: 10) {
           edges {
             node {
+              id,
               namespace,
               key,
               value
@@ -34,7 +35,26 @@ const GET_FLAGS = gql`
 `
 
 const renderNodes = (node, index) => 
-    <p>{node.node.key}</p>
+    <div>
+    <FlagCheckbox />
+        <p>{node.node.id}</p>
+        <p>{node.node.namespace}</p>
+        <p>{node.node.key}</p>
+        <p>{node.node.value}</p>
+    </div>
+
+const FlagCheckbox = () => {
+    
+  const [checked, setChecked] = useState(false);
+  const handleChange = useCallback((newChecked) => setChecked(newChecked), []);
+
+  return (
+    <Checkbox
+      checked={checked}
+      onChange={handleChange}
+    />
+  )
+}
 
 class ApolloIO extends React.Component {
     
@@ -52,17 +72,15 @@ class ApolloIO extends React.Component {
                           if (error) return <div>{error.message}</div>
                             console.log(data)
                           return (
-                            <Card>
-                              {data.collectionByHandle.metafields.edges.map(renderNodes)}
-                            </Card>
+                              <div>
+                                  {data.collectionByHandle.metafields.edges.map(renderNodes)}
+                              </div>
                           )
                         }}
                       </Query>
                   )
                 return (
-                    <Card>
-                      <p>no Collection</p>
-                    </Card>
+                  <p>no Collection</p>
                 )
             }}
           </Query>
