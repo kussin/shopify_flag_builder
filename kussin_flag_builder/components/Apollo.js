@@ -1,7 +1,10 @@
 import React, {useCallback, useState} from 'react';
 import gql from 'graphql-tag'
-import { Query } from 'react-apollo'
+import { Query, Mutation } from 'react-apollo'
 import { Card, DataTable, Layout, Button, Checkbox } from '@shopify/polaris'
+
+const hasData = (data) => 
+    data != undefined
 
 const hasCollection = (data) => 
     data.collectionByHandle != null 
@@ -12,6 +15,29 @@ const GET_COLLECTION = gql`
       collectionByHandle(handle: "flags") {
         id
       }
+    }
+`
+
+const CREATE_COLLECTION = gql`
+
+     mutation {
+
+        collectionCreate(input: {
+        title: "flags",
+          metafields: [
+          {
+            namespace: "flag",
+            key: "name",
+              value: "FirstFlag",
+              valueType: STRING
+          }
+        ]
+      }) {
+        collection {
+          id
+        }
+      }
+
     }
 `
 
@@ -56,34 +82,45 @@ const FlagCheckbox = () => {
   )
 }
 
+const renderFlags = (data) => 
+    <div>
+        {data.collectionByHandle.metafields.edges.map(renderNodes)}
+
+        <Button primary >createFlag</Button>
+    </div>
+
 class ApolloIO extends React.Component {
     
     render() {
         return (
-          <Query query={GET_COLLECTION}>
-            {({ data, loading, error }) => {
-              if (loading) return <div>Loading…</div>
-              if (error) return <div>{error.message}</div>
-              if (hasCollection(data))
-                  return (
-                    <Query query={GET_FLAGS}>
-                        {({ data, loading, error }) => {
-                          if (loading) return <div>Loading…</div>
-                          if (error) return <div>{error.message}</div>
-                            console.log(data)
-                          return (
-                              <div>
-                                  {data.collectionByHandle.metafields.edges.map(renderNodes)}
-                              </div>
-                          )
-                        }}
-                      </Query>
-                  )
-                return (
-                  <p>no Collection</p>
-                )
-            }}
-          </Query>
+            <Mutation mutation={CREATE_COLLECTION}>
+            {(callMutation, {error, data}) => {
+                    return (
+                        <Query query={GET_FLAGS}>
+                            {({ data, loading, error }) => {
+                              if (loading) return <div>Loading…</div>
+                              if (error) return <div>{error.message}</div>
+                              if(hasCollection(data))
+                                  return (
+                                      <div>
+                                          {renderFlags(data)}
+                                      </div>
+                                  )
+
+                            return (
+                                <div>
+                                    <Button primary onClick = {() => {
+                                        callMutation()
+                                        window.location.reload(false)
+                                    }}>Add collection</Button>
+                                </div>
+                            )
+                            }}
+                          </Query>
+                    )
+                }
+            }
+            </Mutation>
         )
     }
 }

@@ -18,15 +18,8 @@ class FlagList extends React.Component {
                       </Card.Section>
 
                       <Card.Section>
-                        <span style={
-                            
-                            {marginRight: "0px"}
-                        
-                        }>
                                   
                             <ApolloIO />
-                        </span>
-                        <Button primary>Create Flag</Button>
                       </Card.Section>
                   </Card>
                 </Layout.Section>    

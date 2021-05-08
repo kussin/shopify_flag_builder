@@ -4,9 +4,6 @@ import { Heading, Page, Button, Card, DataTable, AppProvider, TextField } from "
 import { ResourcePicker } from "@shopify/app-bridge-react"
 import store from 'store-js'
 
-import Test from "../components/Test"
-import ResourceListWithProducts from "../components/ResourceList"
-import AppData from "../components/GetApp"
 import FlagList from "../components/FlagList"
 
 function PlaceholderExample() {
