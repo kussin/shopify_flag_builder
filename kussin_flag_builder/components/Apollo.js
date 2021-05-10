@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import gql from 'graphql-tag'
 import { Query, Mutation } from 'react-apollo'
-import { Card, DataTable, Layout, Button, TextStyle, IndexTable, useIndexResourceState, ButtonGroup } from '@shopify/polaris'
+import { Card, DataTable, Layout, Button, TextStyle, IndexTable, useIndexResourceState, ButtonGroup, TextField, FormLayout } from '@shopify/polaris'
 
 const hasData = (data) => 
     data != undefined
@@ -44,20 +44,9 @@ const CREATE_COLLECTION = gql`
 
 const CREATE_FLAG = gql`
 
-    mutation {
+    mutation ($input: CollectionInput!) {
 
-        collectionUpdate(input: {
-            id: "gid://shopify/Collection/266603528364",
-            metafields: [
-                {
-                    namespace: "flag2",
-                    key: "SecondFlag",
-                    value: "SecondFlag",
-                    valueType: STRING,
-                    description: "color brown fontcolor white borderradius 0%"
-                }
-            ]
-        }) {
+        collectionUpdate(input: $input) {
             collection {
                 id
             }
@@ -86,38 +75,6 @@ const GET_FLAGS = gql`
       }
     }
 `
-
-const renderNodes = (node, index) => 
-    <Layout>
-        <Layout.Section oneThird>
-            <p>{node.node.namespace}</p>
-        </Layout.Section>
-
-        <Layout.Section oneThird>
-            <p>{node.node.key}</p>
-        </Layout.Section>
-
-        <Layout.Section oneThird>
-            <p>{node.node.value}</p>
-        </Layout.Section>
-    </Layout>
-
-const testCheck = (value) => {
-    console.log(value)
-}
-
-const renderFlags = (data) => 
-    <div>
-        {data.collectionByHandle.metafields.edges.map(renderNodes)}
-
-        <Button primary >Add flag</Button>
-    </div>
-
-const rows = [
-    ["FirstFlag", "red", "white"],
-    ["SecondFlag", "red", "white"],
-    ["ThirdFlag", "red", "white"],
-]
 
 const SimpleIndexTableExample = (data) => {
 
@@ -152,13 +109,27 @@ const SimpleIndexTableExample = (data) => {
     ),
   )
   
-  
-  const multipleRowsMarkup = (row) => {
-      
-  }
+    const [valueName, setValueName] = useState('First Flag');
+
+    const [valueColor, setValueColor] = useState('red');
+
+    const [valueFontColor, setValueFontColor] = useState('white');
+
+    const [valueBorderRadius, setValueBorderRadius] = useState('0');
+
+    const changeName = useCallback((newValue) => setValueName(newValue), []);
+
+    const changeColor = useCallback((newValue) => setValueColor(newValue), []);
+
+    const changeFontColor = useCallback((newValue) => setValueFontColor(newValue), []);
+
+    const changeBorderRadius = useCallback((newValue) => setValueBorderRadius(newValue), []);
   
   return (
-      <div>
+      <Mutation mutation={CREATE_FLAG}>
+        {(createFlag, {error, dataMutation}) => {
+      return(
+    <div>
       <IndexTable
         resourceName={resourceName}
         itemCount={flags.length}
@@ -175,17 +146,47 @@ const SimpleIndexTableExample = (data) => {
       >
         {rowMarkup}
       </IndexTable>
-      <ButtonGroup>
+        <ButtonGroup>
         <Button primary onClick = {() => {
-            console.log(selectedResources)
+            createFlag ({
+                variables: { 
+                    input: 
+                        {
+                            id: data.data.collectionByHandle.id,
+                            metafields: [
+                                {
+                                    namespace: valueName,
+                                    key: valueName,
+                                    value: valueName,
+                                    valueType: 'STRING',
+                                    description: 'Color ' + valueColor + ' FontColor ' + valueFontColor + ' BorderRadius ' + valueBorderRadius
+                                }
+                            ]
+                        }
+                    },
+            })
+            window.location.reload(false)
         }}>Add</Button>
-        
+
         <Button destructive onClick = {() => {
-            console.log(selectedResources)
+            console.log('hi')
         }}>Delete</Button>
         </ButtonGroup>
-    </div>
-  );
+    
+        <FormLayout>
+          <FormLayout.Group condensed>
+            <TextField label="Name" value={valueName} onChange={changeName} />
+            <TextField label="Color" value={valueColor} onChange={changeColor} />
+            <TextField label="Font Color" value={valueFontColor} onChange={changeFontColor} />
+            <TextField label="Border Radius in %" value={valueBorderRadius} onChange={changeBorderRadius} />
+          </FormLayout.Group>
+        </FormLayout>
+</div>
+)
+}
+}
+</Mutation>
+  )
 }
 
 class ApolloIO extends React.Component {
@@ -193,7 +194,7 @@ class ApolloIO extends React.Component {
     render() {
         return (
             <Mutation mutation={CREATE_COLLECTION}>
-            {(callMutation, {error, data}) => {
+            {(createCollection, {error, data}) => {
                 return (
                     <Query query={GET_FLAGS}>
                         {({ data, loading, error }) => {
@@ -208,7 +209,7 @@ class ApolloIO extends React.Component {
                         return (
                             <div>
                                 <Button primary onClick = {() => {
-                                    callMutation()
+                                    createCollection()
                                     window.location.reload(false)
                                 }}>Add flag</Button>
                             </div>
