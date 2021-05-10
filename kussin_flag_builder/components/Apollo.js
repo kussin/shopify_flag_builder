@@ -23,16 +23,7 @@ const CREATE_COLLECTION = gql`
      mutation {
 
         collectionCreate(input: {
-        title: "flags",
-          metafields: [
-          {
-            namespace: "FirstFlag",
-            key: "FirstFlag",
-            value: "FirstFlag",
-            valueType: STRING,
-            description: "color red fontcolor white borderradius 0%"
-          }
-        ]
+        title: "flags"
       }) {
         collection {
           id
@@ -76,6 +67,15 @@ const GET_FLAGS = gql`
     }
 `
 
+const DELETE_FLAG = gql`
+
+     mutation ($input: MetafieldDeleteInput!) {
+        metafieldDelete(input: $input) {
+          deletedId
+        } 
+    }
+`
+
 const SimpleIndexTableExample = (data) => {
 
   const flags = data.data.collectionByHandle.metafields.edges
@@ -83,39 +83,48 @@ const SimpleIndexTableExample = (data) => {
   const resourceName = {
     singular: 'flag',
     plural: 'flags',
-  };
+  }
 
-  const {
-    selectedResources,
-    allResourcesSelected,
-    handleSelectionChange,
-  } = useIndexResourceState(flags)
-
-  const rowMarkup = flags.map(
-    (node, index) => (
-      <IndexTable.Row
-        id={node.node.id}
-        key={node.node.id}
-        selected={selectedResources.includes(node.node.id)}
-        position={index}
-      >
-        <IndexTable.Cell>
-          <TextStyle variation="strong">{node.node.key}</TextStyle>
-        </IndexTable.Cell>
-        <IndexTable.Cell>{node.node.key}</IndexTable.Cell>
-        <IndexTable.Cell>{node.node.value}</IndexTable.Cell>
-        <IndexTable.Cell>{node.node.description}</IndexTable.Cell>
-      </IndexTable.Row>
-    ),
-  )
+    const resourceIDResolver = (flags) => {
+        return flags.node.id;
+    }
   
-    const [valueName, setValueName] = useState('First Flag');
+    const {
+        selectedResources,
+        allResourcesSelected,
+        handleSelectionChange,
+    } = useIndexResourceState(flags, {resourceIDResolver})
+  
+    const rowMarkup = flags.map(
+        (node, index) => {
+            
+            const [color, fontColor, borderRadius] = node.node.description.split(',') 
+            
+            return(
+          <IndexTable.Row
+            id={node.node.id}
+            key={node.node.id}
+            selected={selectedResources.includes(node.node.id)}
+            position={index}
+          >
+            <IndexTable.Cell>
+              <TextStyle variation="strong">{node.node.id}</TextStyle>
+            </IndexTable.Cell>
+            <IndexTable.Cell>{color}</IndexTable.Cell>
+            <IndexTable.Cell>{fontColor}</IndexTable.Cell>
+            <IndexTable.Cell>{borderRadius}</IndexTable.Cell>
+          </IndexTable.Row>
+        )
+    }
+    )
+  
+    const [valueName, setValueName] = useState();
 
-    const [valueColor, setValueColor] = useState('red');
+    const [valueColor, setValueColor] = useState();
 
-    const [valueFontColor, setValueFontColor] = useState('white');
+    const [valueFontColor, setValueFontColor] = useState();
 
-    const [valueBorderRadius, setValueBorderRadius] = useState('0');
+    const [valueBorderRadius, setValueBorderRadius] = useState();
 
     const changeName = useCallback((newValue) => setValueName(newValue), []);
 
@@ -126,7 +135,7 @@ const SimpleIndexTableExample = (data) => {
     const changeBorderRadius = useCallback((newValue) => setValueBorderRadius(newValue), []);
   
   return (
-      <Mutation mutation={CREATE_FLAG}>
+      <Mutation mutation={DELETE_FLAG}>
         {(createFlag, {error, dataMutation}) => {
       return(
     <div>
@@ -141,7 +150,7 @@ const SimpleIndexTableExample = (data) => {
           {title: 'Name'},
           {title: 'Color'},
           {title: 'Font Color'},
-          {title: 'Border Radius'},
+          {title: 'Border Radius in %'},
         ]}
       >
         {rowMarkup}
@@ -159,7 +168,7 @@ const SimpleIndexTableExample = (data) => {
                                     key: valueName,
                                     value: valueName,
                                     valueType: 'STRING',
-                                    description: 'Color ' + valueColor + ' FontColor ' + valueFontColor + ' BorderRadius ' + valueBorderRadius
+                                    description: valueColor + ',' + valueFontColor + ',' + valueBorderRadius
                                 }
                             ]
                         }
@@ -169,7 +178,10 @@ const SimpleIndexTableExample = (data) => {
         }}>Add</Button>
 
         <Button destructive onClick = {() => {
-            console.log('hi')
+            if(selectedResources != []) {
+                selectedResources.map((id, index) => createFlag({variables: {input: {id: id}}}))
+                window.location.reload(false)
+            }
         }}>Delete</Button>
         </ButtonGroup>
     
