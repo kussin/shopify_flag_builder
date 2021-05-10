@@ -40,7 +40,7 @@ class Index extends React.Component {
                     content: 'Produkt waehlen',
                     onAction: () => this.setState({ open: true })
                 }}
-            >
+            >   
                 
                 <ResourcePicker 
                     resourceType='Product'
