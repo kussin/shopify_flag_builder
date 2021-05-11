@@ -1,0 +1,15 @@
+/* SCSS Document */
+
+.kussin-flag-container {
+    
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    padding-top: 20px;
+    
+    .kussin-flag {
+        padding: 8px 15px;
+        font-size: 16px;
+    }
+}
