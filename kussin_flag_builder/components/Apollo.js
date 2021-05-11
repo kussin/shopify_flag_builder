@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 import { Query, Mutation } from 'react-apollo'
 import { Card, DataTable, Layout, Button, TextStyle, IndexTable, useIndexResourceState, ButtonGroup, TextField, FormLayout } from '@shopify/polaris'
 
+
 const hasData = (data) => 
     data != undefined
 
@@ -76,6 +77,16 @@ const DELETE_FLAG = gql`
     }
 `
 
+const SCRIPT_TAG = gql`
+
+mutation ($input: MetafieldDeleteInput!) {
+    scriptTagCreate(input: {
+        src: "./js/flag.js",
+        displayScope: ONLINE_STORE
+    })
+}
+`
+
 const SimpleIndexTableExample = (data) => {
 
   const flags = data.data.collectionByHandle.metafields.edges
@@ -108,7 +119,7 @@ const SimpleIndexTableExample = (data) => {
             position={index}
           >
             <IndexTable.Cell>
-              <TextStyle variation="strong">{node.node.id}</TextStyle>
+              <TextStyle variation="strong">{node.node.key}</TextStyle>
             </IndexTable.Cell>
             <IndexTable.Cell>{color}</IndexTable.Cell>
             <IndexTable.Cell>{fontColor}</IndexTable.Cell>
@@ -135,9 +146,12 @@ const SimpleIndexTableExample = (data) => {
     const changeBorderRadius = useCallback((newValue) => setValueBorderRadius(newValue), []);
   
   return (
-      <Mutation mutation={DELETE_FLAG}>
+      <Mutation mutation={CREATE_FLAG}>
         {(createFlag, {error, dataMutation}) => {
       return(
+      <Mutation mutation={DELETE_FLAG}>
+        {(deleteFlag, {error, dataMutation}) => {
+        return(
     <div>
       <IndexTable
         resourceName={resourceName}
@@ -150,7 +164,7 @@ const SimpleIndexTableExample = (data) => {
           {title: 'Name'},
           {title: 'Color'},
           {title: 'Font Color'},
-          {title: 'Border Radius in %'},
+          {title: 'Border Radius'},
         ]}
       >
         {rowMarkup}
@@ -174,15 +188,33 @@ const SimpleIndexTableExample = (data) => {
                         }
                     },
             })
-            window.location.reload(false)
+            setTimeout(window.location.reload(false), 1000)
         }}>Add</Button>
 
         <Button destructive onClick = {() => {
             if(selectedResources != []) {
-                selectedResources.map((id, index) => createFlag({variables: {input: {id: id}}}))
-                window.location.reload(false)
+                selectedResources.map((id, index) => deleteFlag({variables: {input: {id: id}}}))
+                setTimeout(window.location.reload(false), 1000)
             }
         }}>Delete</Button>
+
+        <Button onClick = {() => {
+            data.data.collectionByHandle.metafields.edges.map(
+                (node, index) => {
+                    selectedResources.map(
+                        (selected, _index) => {
+                            if(node.node.id == selected) {
+                                const [color, fontColor, borderRadius] = node.node.description.split(',')
+                                changeName(node.node.key)
+                                changeColor(color)
+                                changeFontColor(fontColor)
+                                changeBorderRadius(borderRadius)
+                            }
+                        }
+                    )          
+                }     
+            )
+        }}>Preview</Button>
         </ButtonGroup>
     
         <FormLayout>
@@ -190,15 +222,27 @@ const SimpleIndexTableExample = (data) => {
             <TextField label="Name" value={valueName} onChange={changeName} />
             <TextField label="Color" value={valueColor} onChange={changeColor} />
             <TextField label="Font Color" value={valueFontColor} onChange={changeFontColor} />
-            <TextField label="Border Radius in %" value={valueBorderRadius} onChange={changeBorderRadius} />
+            <TextField label="Border Radius" value={valueBorderRadius} onChange={changeBorderRadius} />
           </FormLayout.Group>
         </FormLayout>
+    <div className="kussin-flag-container">
+        <div className="kussin-flag" style={{
+                                            background: valueColor,
+                                            borderTopRightRadius: valueBorderRadius,
+                                            borderBottomRightRadius: valueBorderRadius,
+                                            color: valueFontColor,
+                                           }}>{valueName}</div>
+    </div>
 </div>
 )
 }
 }
 </Mutation>
-  )
+)
+}
+}
+</Mutation>
+)
 }
 
 class ApolloIO extends React.Component {
@@ -222,7 +266,7 @@ class ApolloIO extends React.Component {
                             <div>
                                 <Button primary onClick = {() => {
                                     createCollection()
-                                    window.location.reload(false)
+                                    setTimeout(window.location.reload(false), 500)
                                 }}>Add flag</Button>
                             </div>
                         )
