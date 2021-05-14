@@ -2,7 +2,6 @@ import ApolloClient from "apollo-boost";
 import React, {useCallback, useState} from 'react';
 import { Heading, Page, Button, Card, DataTable, AppProvider, TextField } from "@shopify/polaris"
 import { ResourcePicker } from "@shopify/app-bridge-react"
-import store from 'store-js'
 
 import FlagList from "../components/FlagList"
 

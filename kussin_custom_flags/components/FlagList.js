@@ -13,7 +13,7 @@ class FlagList extends React.Component {
             
             <Layout>
                 <Layout.Section>  
-                 <Card title="Dashboard für die Flaggen">
+                 <Card title="Dashboard">
                       <Card.Section>
                       </Card.Section>
 

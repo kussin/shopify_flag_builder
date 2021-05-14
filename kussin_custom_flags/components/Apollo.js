@@ -79,11 +79,15 @@ const DELETE_FLAG = gql`
 
 const SCRIPT_TAG = gql`
 
-mutation ($input: MetafieldDeleteInput!) {
+mutation {
     scriptTagCreate(input: {
-        src: "./js/flag.js",
+        src: "https://cdn.jsdelivr.net/gh/kussin/shopify_flag_builder@main/kussin_flag_builder/js/flag.js",
         displayScope: ONLINE_STORE
-    })
+    }) {
+    scriptTag {
+     id
+    }
+  }
 }
 `
 
@@ -119,7 +123,7 @@ const SimpleIndexTableExample = (data) => {
             position={index}
           >
             <IndexTable.Cell>
-              <TextStyle variation="strong">{node.node.key}</TextStyle>
+              <TextStyle variation="strong">{node.node.value}</TextStyle>
             </IndexTable.Cell>
             <IndexTable.Cell>{color}</IndexTable.Cell>
             <IndexTable.Cell>{fontColor}</IndexTable.Cell>
@@ -178,7 +182,7 @@ const SimpleIndexTableExample = (data) => {
                             id: data.data.collectionByHandle.id,
                             metafields: [
                                 {
-                                    namespace: valueName,
+                                    namespace: "flags",
                                     key: valueName,
                                     value: valueName,
                                     valueType: 'STRING',
@@ -205,7 +209,7 @@ const SimpleIndexTableExample = (data) => {
                         (selected, _index) => {
                             if(node.node.id == selected) {
                                 const [color, fontColor, borderRadius] = node.node.description.split(',')
-                                changeName(node.node.key)
+                                changeName(node.node.value)
                                 changeColor(color)
                                 changeFontColor(fontColor)
                                 changeBorderRadius(borderRadius)
@@ -258,8 +262,20 @@ class ApolloIO extends React.Component {
                             if (error) return <div>{error.message}</div>
                             if(hasCollection(data))
                                 return (
-                                    
+                                    <div>
                                     <SimpleIndexTableExample data={data} />
+                                    
+                                    <Mutation mutation={SCRIPT_TAG}>
+                                    {(includeScript, {error, data}) => {
+                                        return(
+                                            <Button primary onClick = {() => {
+                                                includeScript()
+                                            }}>Add script</Button>
+                                        )
+                                    }
+                                    }
+                                    </Mutation>
+                                    </div>
                                 )
 
                         return (
@@ -267,7 +283,7 @@ class ApolloIO extends React.Component {
                                 <Button primary onClick = {() => {
                                     createCollection()
                                     setTimeout(window.location.reload(false), 500)
-                                }}>Add flag</Button>
+                                }}>Add</Button>
                             </div>
                         )
                         }}
