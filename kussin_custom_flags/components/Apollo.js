@@ -81,7 +81,7 @@ const SCRIPT_TAG = gql`
 
 mutation {
     scriptTagCreate(input: {
-        src: "https://cdn.jsdelivr.net/gh/kussin/shopify_flag_builder@main/kussin_flag_builder/js/flag.js",
+        src: "https://cdn.jsdelivr.net/gh/StevenUster/shopify_flag_builder@main/kussin_flag_builder/js/flag.js",
         displayScope: ONLINE_STORE
     }) {
     scriptTag {
